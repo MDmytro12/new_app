@@ -36,7 +36,8 @@ router.post( '/send-freq' ,
     [
                 check("freq" , "Error 1").isFloat({ min : 0  }) ,
                 check("from" , "Error 2").isString().isLength({ min : 6 , max : 30 })
-            ] , async (req, res) => {
+            ] ,
+    async (req, res) => {
     const errors = validationResult(req);
 
     if(!errors.isEmpty()){
@@ -54,6 +55,13 @@ router.post( '/send-freq' ,
                 fromName: from ,
                 sendedDate: Date.now(),
                 isActive: true
+            }
+        ])
+
+        await ConsoleModel.insertMany([
+            {
+                requestFreq: Types.ObjectId(resultInsert[0]._id),
+                requestPeleng: null
             }
         ])
 
@@ -97,9 +105,14 @@ router.post( '/send-peleng' ,
                 }
             ])
 
-            await SendFreqModel.updateOne({ _id : freqId }  , {
-                isActive: false
-            } )
+            // await SendFreqModel.updateOne({ _id : freqId }  , {
+            //     isActive: false
+            // } )
+
+            await ConsoleModel.insertMany([{
+                 requestFreq: null ,
+                 requestPeleng: Types.ObjectId(resultInsert[0]._id)
+            }])
 
             return res.status(200).json({
                 id: resultInsert[0]._id
@@ -111,5 +124,86 @@ router.post( '/send-peleng' ,
         }
 }
 )
+
+router.post('/get-console' , async (req , res) => {
+    try{
+        let ress = await ConsoleModel.find({})
+            .populate('requestFreq')
+            .populate({
+                path : 'requestPeleng' ,
+                populate: {
+                    path: "requestFreq"
+            }}).exec();
+
+        res.send(ress)
+    }catch(e){
+        res.status(400).json({
+            error: ERRORS.ERROR_SERVER
+        })
+    }
+} )
+
+router.post( '/get-all-f-p' , async (req , res) => {
+    try{
+        const allFreq = await SendFreqModel.find({});
+        const allPeleng = await SendPelengModel.find({}).populate({
+          path : 'requestFreq'
+        }).exec()
+
+        let resultArray = [] ;
+        let filteredArray = [];
+        let filterSet = new Set();
+
+        allFreq.forEach(
+            i => {
+                allPeleng.forEach( i_1 => {
+                    if(i_1.toFreq === i.freq && i_1.requestFreq.sendedDate.toString() === i.sendedDate.toString()){
+                        console.log("PUSHING")
+                        resultArray.push({
+                            freq: i.freq ,
+                            freqId: i._id,
+                            pelengId: i_1._id,
+                            pelengInfo: {
+                                fromName: i_1.fromName,
+                                peleng: i_1.peleng
+                            },
+                            date: i_1.sendedDate
+                        })
+                    }
+                } )
+            }
+        );
+
+        resultArray.forEach( it =>  {
+            if(!filterSet.has(it.freq)){
+                let filterObject = {
+                    ...it ,
+                    pelengInfo: [
+                    ]
+                } ;
+
+                filterSet.add(it.freq)
+
+                resultArray.forEach( it_1 => {
+                    if(it.freq === it_1.freq){
+                        filterObject.pelengInfo.push(it_1.pelengInfo)
+                    }
+                } );
+
+                filteredArray.push(filterObject)
+            }
+        } )
+
+        res.status(200).json({
+            result: filteredArray
+        })
+
+    }
+    catch(e){
+        res.status(400).json({
+            error: ERRORS.ERROR_SERVER
+        })
+    }
+} )
 
 module.exports = router
