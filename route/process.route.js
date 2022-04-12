@@ -1,5 +1,6 @@
 const {Router} = require('express');
 const router = Router();
+const dateFns = require('date-fns')
 const SendFreqModel = require("../models/send-freq.model");
 const SendPelengModel = require("../models/send-peleng.model");
 const ConsoleModel = require("../models/console.model");
@@ -65,6 +66,14 @@ router.post( '/send-freq' ,
             }
         ])
 
+        console.table([
+            {
+                "Frequency value" : freq ,
+                "Sended from" : from ,
+                "Date of sending" : dateFns.format(new Date(Date.now()) , "dd/MM/yyyy")
+            }
+        ]);
+
         return res.status(200).json({
             id: resultInsert[0]._id
         })
@@ -113,6 +122,15 @@ router.post( '/send-peleng' ,
                  requestFreq: null ,
                  requestPeleng: Types.ObjectId(resultInsert[0]._id)
             }])
+
+            console.table([
+                {
+                    "Peleng value" : peleng ,
+                    "Give on frequency" : toFreq ,
+                    "Sended from" : from ,
+                    "Date of sending" : dateFns.format(new Date(Date.now()) , "dd/MM/yyyy")
+                }
+            ]);
 
             return res.status(200).json({
                 id: resultInsert[0]._id

@@ -1,5 +1,6 @@
 const app = require("express")();
 const mongoose = require("mongoose");
+
 const config = require("config");
 const bodyParser = require("body-parser")
 const PORT = process.env.PORT || 9000 ;
@@ -12,8 +13,7 @@ app.use('/process' , require('./route/process.route'))
 async function start(){
     try{
         await mongoose.connect(config.get("mongoURL") , {
-            useNewUrlParser: true ,
-            useUnifiedTopology: true
+            useNewUrlParser: true 
         })
 
         app.listen(PORT , (err) => {

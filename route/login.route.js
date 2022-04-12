@@ -3,6 +3,7 @@ const router = Router();
 const {validationResult , check} = require("express-validator");
 const ERRORS = require('../constants/error');
 const UserModel = require("../models/auth.model")
+const dateFns = require('date-fns')
 
 router.post( '/' ,
     [
@@ -13,12 +14,13 @@ router.post( '/' ,
         console.log("Request" , req.body)
         try{
             const err = validationResult(req) ;
+            const n = await UserModel.findOne( {login : '111111' })
 
             if(!err.isEmpty()){
                 return res.status(400).json({
                     message: ERRORS.ERROR_UNCORRECT_LOGIN_DATA
                 })
-            }
+            }   
 
             const {login , password} = req.body ;
 
@@ -39,6 +41,15 @@ router.post( '/' ,
                     error: ERRORS.ERROR_UNCORRECT_LOGIN_DATA
                 })
             }
+
+            console.table([
+                {
+                    date :dateFns.format(new Date(Date.now()) , "dd/MM/yyyy")  ,
+                    username : checkResult.username ,
+                    login ,
+                    password
+                }
+            ])
 
             res.status(200).json({
                 loginData: {

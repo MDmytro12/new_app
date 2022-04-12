@@ -1,3 +1,3 @@
 {
-  "mongoURL" : "mongodb+srv://dimasta:zasada12@cluster0.rbhl2.mongodb.net/myFirstDatabase?retryWrites=true&w=majority"
+  "mongoURL" : "mongodb://localhost:27017/myapp"
 }
