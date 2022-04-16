@@ -18,7 +18,10 @@ const schema = new Schema({
         type: Boolean,
         required: true,
         default: false
-    }
+    } ,
+    userSeen: [
+        Schema.Types.ObjectId
+    ]
 })
 
 module.exports = model("send-freq" , schema)
